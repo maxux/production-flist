@@ -36,31 +36,34 @@ dependencies() {
 }
 
 config() {
-    mkdir -m 777 ${ICECAST_ROOT}/tmp
-
-    mkdir -p -m 755 ${ICECAST_ROOT}/var/log
-    chown 1000 -R ${ICECAST_ROOT}/var/log
+    mkdir -p -m 777 ${ICECAST_ROOT}/tmp
+    mkdir -p -m 777 ${ICECAST_ROOT}/var/log
 
     cp /etc/mime.types ${ICECAST_ROOT}/etc/
 
+    # add icecast user and group
     echo "root:x:0:0:root:/root:/bin/bash" > ${ICECAST_ROOT}/etc/passwd
     echo "icecast:x:1000:1000:icecast:/root:/bin/bash" >> ${ICECAST_ROOT}/etc/passwd
 
     echo "root:x:0:root" > ${ICECAST_ROOT}/etc/group
     echo "icecast:x:1000:icecast" >> ${ICECAST_ROOT}/etc/group
 
+    # change default arbitrary settings
     sed -i "s/location>Earth/location>Zero-OS Streaming/" ${ICECAST_ROOT}/etc/icecast.xml
     sed -i "s/icemaster@localhost/root@zero-os-icecast.net/" ${ICECAST_ROOT}/etc/icecast.xml
     sed -i "s/hostname>localhost/hostname>zero-os-icecast/" ${ICECAST_ROOT}/etc/icecast.xml
 
+    # change default password and path
     sed -i "s/hackme/donothackme/g" ${ICECAST_ROOT}/etc/icecast.xml
-    sed -i "s/user>nobody/user>icecast/" ${ICECAST_ROOT}/etc/icecast.xml
-    sed -i "s/group>nogroup/group>icecast/" ${ICECAST_ROOT}/etc/icecast.xml
-
     sed -i "s#//var/log/icecast#//var/log/#" ${ICECAST_ROOT}/etc/icecast.xml
 
+    # uncomment ownerchange section
     sed -i '237d' ${ICECAST_ROOT}/etc/icecast.xml
     sed -i '241d' ${ICECAST_ROOT}/etc/icecast.xml
+
+    # set owner
+    sed -i "s/user>nobody/user>icecast/" ${ICECAST_ROOT}/etc/icecast.xml
+    sed -i "s/group>nogroup/group>icecast/" ${ICECAST_ROOT}/etc/icecast.xml
 }
 
 startup() {
@@ -89,6 +92,7 @@ main() {
     compile
     dependencies
     config
+    startup
     cleanup
     archive
 }
