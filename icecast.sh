@@ -59,13 +59,13 @@ config() {
     echo "root:x:0:root" > ${ICECAST_ROOT}/etc/group
     echo "icecast:x:1000:icecast" >> ${ICECAST_ROOT}/etc/group
 
-    # change default arbitrary settings
-    sed -i "s/location>Earth/location>Zero-OS Streaming/" ${ICECAST_ROOT}/etc/icecast.xml
-    sed -i "s/icemaster@localhost/root@zero-os-icecast.net/" ${ICECAST_ROOT}/etc/icecast.xml
-    sed -i "s/hostname>localhost/hostname>zero-os-icecast/" ${ICECAST_ROOT}/etc/icecast.xml
+    # change customizable settings
+    sed -i "s/location>Earth/location>__location__/" ${ICECAST_ROOT}/etc/icecast.xml
+    sed -i "s/icemaster@localhost/__admin__/" ${ICECAST_ROOT}/etc/icecast.xml
+    sed -i "s/hostname>localhost/hostname>__hostname__/" ${ICECAST_ROOT}/etc/icecast.xml
+    sed -i "s/hackme/__password__/g" ${ICECAST_ROOT}/etc/icecast.xml
 
-    # change default password and path
-    sed -i "s/hackme/donothackme/g" ${ICECAST_ROOT}/etc/icecast.xml
+    # change logs path
     sed -i "s#//var/log/icecast#//var/log/#" ${ICECAST_ROOT}/etc/icecast.xml
 
     # uncomment ownerchange section
@@ -78,13 +78,30 @@ config() {
 }
 
 startup() {
-    cat > /.startup.toml << EOF
+    cat > ${ICECAST_ROOT}/bin/launcher << EOF
+#!/bin/bash
+cfg_password="${ICECAST_PASSWORD:-donothackme}"
+cfg_location="${ICECAST_LOCATION:-Zero OS}"
+cfg_admin="${ICECAST_ADMIN:-root@zero-os-icecast.net}"
+cfg_hostname="${ICECAST_HOSTNAME:-zero-os-icecast}"
+
+sed -i "s/__location__/${cfg_location}/g" /etc/icecast.xml
+sed -i "s/__admin__/${cfg_admin}/g" /etc/icecast.xml
+sed -i "s/__hostname__/${cfg_hostname}/g" /etc/icecast.xml
+sed -i "s/__password__/${cfg_password}/g" /etc/icecast.xml
+
+/bin/icecast -c /etc/icecast.xml
+EOF
+
+    cat > ${ICECAST_ROOT}/.startup.toml << EOF
 [startup.icecast]
 name = "bash"
 
 [startup.icecast.args]
-script = "icecast -c /etc/icecast.xml"
+script = "/bin/launcher"
 EOF
+
+    chmod +x ${ICECAST_ROOT}/bin/launcher
 }
 
 cleanup() {
