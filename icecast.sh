@@ -33,6 +33,17 @@ dependencies() {
     chmod +x lddcopy.sh
 
     ./lddcopy.sh ${ICECAST_ROOT}/bin/icecast ${ICECAST_ROOT}
+
+    cp /bin/bash ${ICECAST_ROOT}/bin/
+    ./lddcopy.sh ${ICECAST_ROOT}/bin/bash ${ICECAST_ROOT}
+
+    # symlink /bin/sh to bash
+    pushd ${ICECAST_ROOT}/bin/
+    ln -s bash sh
+    popd
+
+    cp /bin/sed ${ICECAST_ROOT}/bin/
+    ./lddcopy.sh ${ICECAST_ROOT}/bin/sed ${ICECAST_ROOT}
 }
 
 config() {
